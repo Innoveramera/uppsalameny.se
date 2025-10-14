@@ -1,87 +1,152 @@
 <!doctype html>
 <html lang="sv">
+
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Veckans lunchmenyer</title>
-  <style>
-    html,body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#0b0b0c; color:#fff; }
-    .wrap { max-width: 1000px; margin: 0 auto; padding: 24px; }
-    h1 { font-size: clamp(24px, 3vw, 36px); margin: 0 0 8px; }
-    .meta { opacity:.7; margin-bottom: 20px; }
-    .grid { display:grid; gap:16px; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); }
-    .card { background:#151518; border:1px solid #242428; border-radius:16px; padding:16px; }
-    .shop { font-weight:600; font-size:18px; margin-bottom:8px; }
-    .pdf { aspect-ratio: 4/5; width:100%; border:0; background:#0f0f12; border-radius:12px; }
-    .cta { display:inline-block; margin-top:10px; padding:10px 14px; border:1px solid #3a3a40; border-radius:10px; text-decoration:none; color:#fff; }
-    .missing { opacity:.6; font-style:italic; }
-    .footer { opacity:.5; font-size:13px; margin-top:24px; }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <h1>Veckans lunchmenyer</h1>
-    <div class="meta" id="updated"></div>
-    <div class="grid" id="grid"></div>
-    <div class="footer">Sidan uppdateras automatiskt när nya menyer kommer in.</div>
-  </div>
-
-  <script>
-    const APPSCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyeVL0xJwbSbeou1bQxyrXHSJ9bcnO4k8i3KWk-vTkpyCcrhQTxcO9iS2wU_zABcuKE/exec';
-
-    async function load() {
-      const r = await fetch(APPSCRIPT_URL, { cache: 'no-store' });
-      const data = await r.json();
-      document.getElementById('updated').textContent =
-        'Senast uppdaterad: ' + new Date(data.updatedAt).toLocaleString('sv-SE');
-
-      const grid = document.getElementById('grid');
-      grid.innerHTML = '';
-      data.menus.forEach(m => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        const title = document.createElement('div');
-        title.className = 'shop';
-        title.textContent = m.shop;
-
-        card.appendChild(title);
-
-        if (m.url) {
-          // Visa PDF inbäddad om möjligt
-          const embed = document.createElement('iframe');
-          embed.className = 'pdf';
-          embed.src = m.url; // Google Drive viewer funkar med /view
-          card.appendChild(embed);
-
-          const a = document.createElement('a');
-          a.className = 'cta';
-          a.href = m.url;
-          a.target = '_blank';
-          a.rel = 'noopener';
-          a.textContent = 'Öppna PDF';
-          card.appendChild(a);
-
-          const small = document.createElement('div');
-          small.style.opacity = .6;
-          small.style.marginTop = '6px';
-          if (m.createdAt) {
-            const d = new Date(m.createdAt).toLocaleString('sv-SE', { dateStyle:'medium', timeStyle:'short' });
-            small.textContent = `Inkommen: ${d}`;
-          }
-          card.appendChild(small);
-        } else {
-          const missing = document.createElement('div');
-          missing.className = 'missing';
-          missing.textContent = 'Inte inkommet än den här veckan.';
-          card.appendChild(missing);
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Veckans lunchmenyer</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+            background: #0b0b0c;
+            color: #fff;
         }
-        grid.appendChild(card);
-      });
-    }
 
-    load();
-    // Auto-refresh var 10:e minut på skärm
-    setInterval(load, 10 * 60 * 1000);
-  </script>
+        .wrap {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        h1 {
+            font-size: clamp(24px, 3vw, 36px);
+            margin: 0 0 8px;
+        }
+
+        .meta {
+            opacity: .7;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+
+        .card {
+            background: #151518;
+            border: 1px solid #242428;
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .shop {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .pdf {
+            aspect-ratio: 4/5;
+            width: 100%;
+            border: 0;
+            background: #0f0f12;
+            border-radius: 12px;
+        }
+
+        .cta {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 14px;
+            border: 1px solid #3a3a40;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #fff;
+        }
+
+        .missing {
+            opacity: .6;
+            font-style: italic;
+        }
+
+        .footer {
+            opacity: .5;
+            font-size: 13px;
+            margin-top: 24px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <h1>Veckans lunchmenyer</h1>
+        <div class="meta" id="updated"></div>
+        <div class="grid" id="grid"></div>
+        <div class="footer">Sidan uppdateras automatiskt när nya menyer kommer in.</div>
+    </div>
+
+    <script>
+        const APPSCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyeVL0xJwbSbeou1bQxyrXHSJ9bcnO4k8i3KWk-vTkpyCcrhQTxcO9iS2wU_zABcuKE/exec';
+
+        async function load() {
+            const r = await fetch(APPSCRIPT_URL, { cache: 'no-store' });
+            const data = await r.json();
+            document.getElementById('updated').textContent =
+                'Senast uppdaterad: ' + new Date(data.updatedAt).toLocaleString('sv-SE');
+
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            data.menus.forEach(m => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                const title = document.createElement('div');
+                title.className = 'shop';
+                title.textContent = m.shop;
+
+                card.appendChild(title);
+
+                if (m.url) {
+                    // Visa PDF inbäddad om möjligt
+                    const embed = document.createElement('iframe');
+                    embed.className = 'pdf';
+                    // Förr: embed.src = m.url;  // (detta är /view)
+                    const previewUrl = `https://drive.google.com/file/d/${m.fileId}/preview`;
+                    embed.src = previewUrl;     // funkar i iframe
+                    card.appendChild(embed);
+
+                    const a = document.createElement('a');
+                    a.className = 'cta';
+                    a.href = m.url;
+                    a.target = '_blank';
+                    a.rel = 'noopener';
+                    a.textContent = 'Öppna PDF';
+                    card.appendChild(a);
+
+                    const small = document.createElement('div');
+                    small.style.opacity = .6;
+                    small.style.marginTop = '6px';
+                    if (m.createdAt) {
+                        const d = new Date(m.createdAt).toLocaleString('sv-SE', { dateStyle: 'medium', timeStyle: 'short' });
+                        small.textContent = `Inkommen: ${d}`;
+                    }
+                    card.appendChild(small);
+                } else {
+                    const missing = document.createElement('div');
+                    missing.className = 'missing';
+                    missing.textContent = 'Inte inkommet än den här veckan.';
+                    card.appendChild(missing);
+                }
+                grid.appendChild(card);
+            });
+        }
+
+        load();
+        // Auto-refresh var 10:e minut på skärm
+        setInterval(load, 10 * 60 * 1000);
+    </script>
 </body>
+
 </html>
